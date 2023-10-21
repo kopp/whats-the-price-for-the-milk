@@ -12,6 +12,7 @@ PRODUCT_URL = "https://nomi.shop/oatly-haferdrink-voll-6er-pack"
 EXIT_OK = 0
 EXIT_FAIL = 1
 
+asdf /
 
 class _Arguments(tap.TypedArgs):
     is_above: Optional[float] = tap.arg(
