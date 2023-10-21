@@ -1,0 +1,45 @@
+[project]
+name = "whats-the-price-for-the-milk"
+version = "1.0.0"
+description = "Query the price for a particular kind of milk"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+dependencies = [
+  "beautifulsoup4",
+  "requests",
+  "typed-argparse",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "isort",
+  "flake8",
+  "mypy",
+  "pylint",
+  "types-beautifulsoup4",
+  "types-requests",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/kopp/whats-the-price-for-the-milk"
+
+[project.scripts]
+get_current_price = "whats_the_price_for_the_milk.main:main"
+
+[build-system]
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
