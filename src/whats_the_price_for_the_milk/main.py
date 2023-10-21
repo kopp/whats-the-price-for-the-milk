@@ -22,7 +22,7 @@ class _Arguments(tap.TypedArgs):
 
 def _get_current_price() -> float:
     """Return the current price in Euros."""
-    response = requests.get(PRODUCT_URL)
+    response = requests.get(PRODUCT_URL, timeout=10)
     assert response.status_code == 200, f"faulty response {response}"
     soup = BeautifulSoup(response.text, features="html.parser")
     prices = soup.find_all("p", {"class": "product-detail-price"})
@@ -41,4 +41,5 @@ def _run(args: _Arguments) -> None:
 
 
 def main():
+    """Entry point of CLI script."""
     tap.Parser(_Arguments, description=__doc__).bind(_run).run()
