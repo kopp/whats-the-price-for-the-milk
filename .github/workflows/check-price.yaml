@@ -14,5 +14,8 @@ jobs:
       with:
         python-version: '3.10'
     - run: pip install --editable '.[dev]'
-    - run: get_current_price --is-above 10
+    - run: get_current_price --message-if-below 10
+      env:
+        CALLMEBOT_NUMBER: ${{ secrets.CALLMEBOT_NUMBER }}
+        CALLMEBOT_TOKEN: ${{ secrets.CALLMEBOT_TOKEN }}
 
