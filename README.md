@@ -9,3 +9,9 @@ out an email alert.
 It can also be configured to send a WhatsApp notification using
 [callmebot.com](https://www.callmebot.com/blog/free-api-whatsapp-messages/)
 if the price is below a certain value.
+
+
+## Evaluate prives
+
+The notebook `evaluate_price_over_time.ipynb` can be used to evaluate prices from logs.
+Run `get_prices_from_logs` to get the data from logs of the github action.
