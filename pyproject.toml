@@ -30,6 +30,9 @@ dev = [
   "pylint",
   "types-beautifulsoup4",
   "types-requests",
+  "pandas-stubs",
+  "jupyterlab",
+  "pandas",
 ]
 
 [project.urls]
@@ -37,6 +40,7 @@ dev = [
 
 [project.scripts]
 get_current_price = "whats_the_price_for_the_milk.main:main"
+get_prices_from_logs = "whats_the_price_for_the_milk.get_logs:main"
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
