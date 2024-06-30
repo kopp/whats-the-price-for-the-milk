@@ -126,7 +126,17 @@ def get_prices_as_table():
     all_runs = get_all_workflow_runs()
     df = get_times_and_prices_from_runs(all_runs)
     print(df.describe())
-    output_file = "known_prices.csv"
+    output_file = Path("known_prices.csv")
+    if output_file.exists():
+        print(f"Merging data with existing data from {output_file}.")
+        old_df = pd.read_csv(output_file, index_col=0)
+        df = (
+            pd.concat([old_df, df])
+            .drop_duplicates(subset="time")
+            .sort_values("time", ascending=True)
+            .reset_index(drop=True)
+        )
+        print(df.describe())
     df.to_csv(output_file)
     print(f"Wrote raw data to {output_file}")
 
