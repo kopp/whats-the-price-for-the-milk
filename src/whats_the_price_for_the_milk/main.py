@@ -63,6 +63,8 @@ def _send_callmebot_message(text: str) -> bool:
             "Error sending callmebot message '{text}' to '{url}': '{response}' (text '{response.text}')",
             file=sys.stderr,
         )
+    else:
+        print("message sent via callmebot")
     return response.ok
 
 
