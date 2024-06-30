@@ -1,17 +1,21 @@
 """
-Get the current price for a certain milk.
+Get the current price for a certain commodity like milk or oil.
 """
 
+import json
 import os
 import sys
-from urllib.parse import quote
+from enum import Enum
 from typing import NamedTuple, Optional
-from bs4 import BeautifulSoup
+from urllib.parse import quote
+
 import requests
 import typed_argparse as tap
+from bs4 import BeautifulSoup
 
+MILK_URL = "https://nomi.shop/oatly-haferdrink-voll-6er-pack"
+OIL_URL = "https://www.heizoel24.de/api/kalkulation/berechnen"
 
-PRODUCT_URL = "https://nomi.shop/oatly-haferdrink-voll-6er-pack"
 EXIT_OK = 0
 EXIT_FAIL = 1
 
@@ -65,9 +69,9 @@ def _send_callmebot_message(text: str) -> bool:
 # web scraping ----------------------------------------------------------------
 
 
-def _get_current_price() -> float:
+def _get_current_milk_price() -> float:
     """Return the current price in Euros."""
-    response = requests.get(PRODUCT_URL, timeout=10)
+    response = requests.get(MILK_URL, timeout=10)
     assert response.status_code == 200, f"faulty response {response}"
     soup = BeautifulSoup(response.text, features="html.parser")
     prices = soup.find_all("p", {"class": "product-detail-price"})
@@ -77,10 +81,152 @@ def _get_current_price() -> float:
     return price
 
 
+def _get_current_oil_price() -> float:
+    _OIL_API_HEADER = json.loads(
+        """
+        {
+        "ZipCode": "71717",
+        "Amount": 3000,
+        "Stations": 1,
+        "Product": {
+            "Id": 1,
+            "ClimateNeutral": false
+        },
+        "Parameters": [
+            {
+            "Key": "MaxDelivery",
+            "Id": 5,
+            "Modifier": -1,
+            "Name": "maximal",
+            "ShortName": null,
+            "DisplayName": "max. Lieferfrist",
+            "CalculatorName": "siehe Angebot",
+            "SubText": null,
+            "InfoText": null,
+            "OrderText": null,
+            "IconKey": null,
+            "HasSpecialView": false,
+            "IsUpselling": false,
+            "BlackList": [],
+            "Selected": true,
+            "HasSubItems": false,
+            "UseIcon": false
+            },
+            {
+            "Key": null,
+            "Id": 24,
+            "Modifier": -1,
+            "Name": "ganztägig möglich (7-18 Uhr)",
+            "ShortName": null,
+            "DisplayName": null,
+            "CalculatorName": null,
+            "SubText": null,
+            "InfoText": null,
+            "OrderText": null,
+            "IconKey": null,
+            "HasSpecialView": false,
+            "IsUpselling": false,
+            "BlackList": [],
+            "Selected": true,
+            "HasSubItems": false,
+            "UseIcon": false
+            },
+            {
+            "Key": null,
+            "Id": -2,
+            "Modifier": -1,
+            "Name": "alle",
+            "ShortName": "alle",
+            "DisplayName": "alle",
+            "CalculatorName": "alle",
+            "SubText": null,
+            "InfoText": null,
+            "OrderText": null,
+            "IconKey": null,
+            "HasSpecialView": false,
+            "IsUpselling": false,
+            "BlackList": [],
+            "Selected": true,
+            "HasSubItems": false,
+            "UseIcon": false
+            },
+            {
+            "Key": null,
+            "Id": 11,
+            "Modifier": -1,
+            "Name": "mit Hänger",
+            "ShortName": "groß",
+            "DisplayName": "TKW mit Hänger",
+            "CalculatorName": "mit Hänger",
+            "SubText": null,
+            "InfoText": null,
+            "OrderText": null,
+            "IconKey": null,
+            "HasSpecialView": false,
+            "IsUpselling": false,
+            "BlackList": [],
+            "Selected": true,
+            "HasSubItems": false,
+            "UseIcon": true
+            },
+            {
+            "Key": null,
+            "Id": 9,
+            "Modifier": -1,
+            "Name": "bis 40m",
+            "ShortName": "40m",
+            "DisplayName": null,
+            "CalculatorName": null,
+            "SubText": null,
+            "InfoText": null,
+            "OrderText": null,
+            "IconKey": null,
+            "HasSpecialView": false,
+            "IsUpselling": false,
+            "BlackList": [],
+            "Selected": true,
+            "HasSubItems": false,
+            "UseIcon": false
+            }
+        ],
+        "CountryId": 1,
+        "Cn": false,
+        "Ap": false,
+        "ProductGroupId": 1,
+        "AppointmentPlus": false,
+        "Ordering": 0,
+        "UpsellCount": 0
+        }
+        """
+    )
+    response = requests.post(OIL_URL, timeout=10, json=_OIL_API_HEADER)
+    assert response.status_code == 200, f"faulty response {response}"
+    prices = response.json()
+    lowest_price = min([p["UnitPrice"] for p in prices["Items"]])
+    return lowest_price
+
+
+class _Commodity(str, Enum):
+    milk = "milk"
+    oil = "oil"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+_GET_CURRENT_PRICE_FOR = {
+    _Commodity.milk: _get_current_milk_price,
+    _Commodity.oil: _get_current_oil_price,
+}
+
+
 # CLI -------------------------------------------------------------------------
 
 
 class _Arguments(tap.TypedArgs):
+    commodity: _Commodity = tap.arg(
+        help="The commodity to check the price for.",
+    )
     check_is_above: Optional[float] = tap.arg(
         help=f"Return {EXIT_OK} if price is above this threshold or {EXIT_FAIL} if below or equal."
         " Note, that the script may fail for other reasons even if the price is above.",
@@ -95,12 +241,13 @@ class _Arguments(tap.TypedArgs):
 
 
 def _run(args: _Arguments) -> None:
-    price = _get_current_price()
+    get_price = _GET_CURRENT_PRICE_FOR[args.commodity]
+    price = get_price()
     print(price)
 
     execution_ok = True
     if args.message_if_below is not None and price < args.message_if_below:
-        text = f"Current price *{price:.2f} \N{euro sign}* is below {args.message_if_below:.2f} \N{euro sign} at {PRODUCT_URL}."
+        text = f"Current price *{price:.2f} \N{euro sign}* is below {args.message_if_below:.2f} \N{euro sign} at {MILK_URL}."
         is_sent = _send_callmebot_message(text)
         execution_ok = is_sent and execution_ok
     if args.check_is_above is not None:
@@ -113,5 +260,5 @@ def _run(args: _Arguments) -> None:
 
 def main():
     """Entry point of CLI script."""
-    description = __doc__ + f" Checking website {PRODUCT_URL} for that."
+    description = __doc__ + f" Checking website {MILK_URL} or {OIL_URL} for that."
     tap.Parser(_Arguments, description=description).bind(_run).run()

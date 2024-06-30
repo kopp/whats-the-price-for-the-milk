@@ -1,6 +1,6 @@
 # whats-the-price-for-the-milk
 
-Monitor prices for a certain piece of milk.
+Monitor prices for a certain comodities, like a piece of milk.
 
 A pipeline checks the price daily.
 
@@ -11,7 +11,7 @@ It can also be configured to send a WhatsApp notification using
 if the price is below a certain value.
 
 
-## Evaluate prives
+## Evaluate prices
 
 The notebook `evaluate_price_over_time.ipynb` can be used to evaluate prices from logs.
 Run `get_prices_from_logs` to get the data from logs of the github action.

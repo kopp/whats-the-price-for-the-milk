@@ -1,3 +1,7 @@
+"""
+Extract price data from github action logs.
+"""
+
 import datetime
 import io
 import json
@@ -9,6 +13,7 @@ from typing import List, NamedTuple, Optional
 
 import pandas as pd
 import requests
+import typed_argparse as tap
 
 TOKEN_ENV = "GITHUB_AUTH_TOKEN"
 TOKEN_PATH = Path(__file__).parent.parent.parent / "github_token.json"
@@ -95,6 +100,8 @@ def get_time_and_price_from_run(run_id: int) -> TimeAndPrice:
         },
     )
 
+    assert response.ok, "Unable to fetch logs from github."
+
     logs = zipfile.ZipFile(io.BytesIO(response.content)).read("0_check-price.txt").decode()
 
     return _extract_time_and_price_from_logs(logs)
@@ -112,13 +119,28 @@ def get_times_and_prices_from_runs(run_ids: List[int]) -> pd.DataFrame:
     return pd.DataFrame(values)
 
 
-def main():
+def get_prices_as_table():
     all_runs = get_all_workflow_runs()
     df = get_times_and_prices_from_runs(all_runs)
     print(df.describe())
     output_file = "known_prices.csv"
     df.to_csv(output_file)
     print(f"Wrote raw data to {output_file}")
+
+
+# CLI -------------------------------------------------------------------------
+
+
+class _Arguments(tap.TypedArgs):
+    pass
+
+
+def _run(args: _Arguments):
+    get_prices_as_table()
+
+
+def main():
+    tap.Parser(_Arguments, description=__doc__).bind(_run).run()
 
 
 if __name__ == "__main__":
