@@ -32,6 +32,7 @@ dev = [
   "types-requests",
   "pandas-stubs",
   "jupyterlab",
+  "matplotlib",
   "pandas",
 ]
 

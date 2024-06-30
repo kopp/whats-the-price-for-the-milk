@@ -1,3 +1,7 @@
+"""
+Extract price data from github action logs.
+"""
+
 import datetime
 import io
 import json
@@ -9,6 +13,7 @@ from typing import List, NamedTuple, Optional
 
 import pandas as pd
 import requests
+import typed_argparse as tap
 
 TOKEN_ENV = "GITHUB_AUTH_TOKEN"
 TOKEN_PATH = Path(__file__).parent.parent.parent / "github_token.json"
@@ -63,7 +68,10 @@ def get_all_workflow_runs() -> List[int]:
                 "X-GitHub-Api-Version": "2022-11-28",
             },
         )
-        run_ids.extend([int(run["id"]) for run in response.json()["workflow_runs"]])
+        try:
+            run_ids.extend([int(run["id"]) for run in response.json()["workflow_runs"]])
+        except Exception as e:
+            raise ValueError(f"Unexpected response (Error {type(e)}: {e}) for response:\n{response.text}") from e
 
         next_url = _get_next_page_url(response.headers["link"])
         if next_url is None:
@@ -95,6 +103,8 @@ def get_time_and_price_from_run(run_id: int) -> TimeAndPrice:
         },
     )
 
+    assert response.ok, "Unable to fetch logs from github."
+
     logs = zipfile.ZipFile(io.BytesIO(response.content)).read("0_check-price.txt").decode()
 
     return _extract_time_and_price_from_logs(logs)
@@ -112,13 +122,41 @@ def get_times_and_prices_from_runs(run_ids: List[int]) -> pd.DataFrame:
     return pd.DataFrame(values)
 
 
-def main():
+def get_prices_as_table():
     all_runs = get_all_workflow_runs()
     df = get_times_and_prices_from_runs(all_runs)
     print(df.describe())
-    output_file = "known_prices.csv"
+    output_file = Path("known_prices.csv")
+    if output_file.exists():
+        print(f"Merging data with existing data from {output_file}.")
+        old_df = pd.read_csv(output_file, index_col=0)
+        df = (
+            pd.concat([old_df, df])
+            .drop_duplicates(subset="time")
+            .sort_values("time", ascending=True)
+            .reset_index(drop=True)
+        )
+        print(df.describe())
     df.to_csv(output_file)
     print(f"Wrote raw data to {output_file}")
+
+
+# CLI -------------------------------------------------------------------------
+
+
+class _Arguments(tap.TypedArgs):
+    pass
+
+
+def _run(args: _Arguments):
+    get_prices_as_table()
+
+
+def main():
+    tap.Parser(
+        _Arguments,
+        description=__doc__ + "Note: This will currently only find/consider the price for the first commodity.",
+    ).bind(_run).run()
 
 
 if __name__ == "__main__":

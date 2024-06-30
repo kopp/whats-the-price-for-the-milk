@@ -14,7 +14,11 @@ jobs:
       with:
         python-version: '3.11'
     - run: pip install --editable '.'
-    - run: get_current_price --message-if-below 10
+    - run: get_current_price --commodity milk --message-if-below 10
+      env:
+        CALLMEBOT_NUMBER: ${{ secrets.CALLMEBOT_NUMBER }}
+        CALLMEBOT_TOKEN: ${{ secrets.CALLMEBOT_TOKEN }}
+    - run: get_current_price --commodity oil --message-if-below 95
       env:
         CALLMEBOT_NUMBER: ${{ secrets.CALLMEBOT_NUMBER }}
         CALLMEBOT_TOKEN: ${{ secrets.CALLMEBOT_TOKEN }}

@@ -2,3 +2,4 @@ venv
 *.egg-info
 __pycache__
 github_token.json
+.ipynb_checkpoints
