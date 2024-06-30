@@ -37,7 +37,7 @@ def _get_callmebot_data_from_env() -> CallMeBotConnection:
     if ENV_CALLMEBOT_NUMBER not in os.environ:
         error_message += f" Number expected in {ENV_CALLMEBOT_NUMBER}."
     if ENV_CALLMEBOT_TOKEN not in os.environ:
-        error_message += f" Token expected in {ENV_CALLMEBOT_NUMBER}"
+        error_message += f" Token expected in {ENV_CALLMEBOT_TOKEN}"
     if len(error_message) > 0:
         raise ValueError("Error retrieving callmebot data from environment:" + error_message)
     return CallMeBotConnection(
@@ -55,17 +55,23 @@ def _get_callmebot_url(text: str) -> str:
     )
 
 
+def _check_response_ok(response: requests.Response) -> bool:
+    if not response.ok:
+        return False
+    if "technical issues" in response.text:
+        return False
+
+
 def _send_callmebot_message(text: str) -> bool:
     url = _get_callmebot_url(text)
     response = requests.get(url)
-    if not response.ok:
+    sending_worked = _check_response_ok(response)
+    if not sending_worked:
         print(
-            "Error sending callmebot message '{text}' to '{url}': '{response}' (text '{response.text}')",
+            f"Error sending callmebot message '{text}' to '{url}': '{response}' (text '{response.text}')",
             file=sys.stderr,
         )
-    else:
-        print("message sent via callmebot")
-    return response.ok
+    return sending_worked
 
 
 # web scraping ----------------------------------------------------------------
