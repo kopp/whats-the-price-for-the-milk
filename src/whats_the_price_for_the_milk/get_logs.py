@@ -68,7 +68,10 @@ def get_all_workflow_runs() -> List[int]:
                 "X-GitHub-Api-Version": "2022-11-28",
             },
         )
-        run_ids.extend([int(run["id"]) for run in response.json()["workflow_runs"]])
+        try:
+            run_ids.extend([int(run["id"]) for run in response.json()["workflow_runs"]])
+        except Exception as e:
+            raise ValueError(f"Unexpected response (Error {type(e)}: {e}) for response:\n{response.text}") from e
 
         next_url = _get_next_page_url(response.headers["link"])
         if next_url is None:
@@ -140,7 +143,10 @@ def _run(args: _Arguments):
 
 
 def main():
-    tap.Parser(_Arguments, description=__doc__).bind(_run).run()
+    tap.Parser(
+        _Arguments,
+        description=__doc__ + "Note: This will currently only find/consider the price for the first commodity.",
+    ).bind(_run).run()
 
 
 if __name__ == "__main__":
