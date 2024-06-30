@@ -60,6 +60,7 @@ def _check_response_ok(response: requests.Response) -> bool:
         return False
     if "technical issues" in response.text:
         return False
+    return True
 
 
 def _send_callmebot_message(text: str) -> bool:
@@ -255,7 +256,7 @@ def _run(args: _Arguments) -> None:
 
     execution_ok = True
     if args.message_if_below is not None and price < args.message_if_below:
-        text = f"Current price *{price:.2f} \N{euro sign}* is below {args.message_if_below:.2f} \N{euro sign} at {MILK_URL}."
+        text = f"Current price *{price:.2f} \N{euro sign}* is below {args.message_if_below:.2f} \N{euro sign} for {args.commodity}."
         is_sent = _send_callmebot_message(text)
         execution_ok = is_sent and execution_ok
     if args.check_is_above is not None:
