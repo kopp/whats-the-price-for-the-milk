@@ -247,6 +247,9 @@ class _Arguments(tap.TypedArgs):
         f" {ENV_CALLMEBOT_NUMBER} and API key under {ENV_CALLMEBOT_TOKEN}.",
         default=None,
     )
+    message_price: bool = tap.arg(
+        help="Send a message with the current price regardless of its value.",
+    )
 
 
 def _run(args: _Arguments) -> None:
@@ -255,8 +258,11 @@ def _run(args: _Arguments) -> None:
     print(price)
 
     execution_ok = True
-    if args.message_if_below is not None and price < args.message_if_below:
-        text = f"Current price *{price:.2f} \N{euro sign}* is below {args.message_if_below:.2f} \N{euro sign} for {args.commodity}."
+    if args.message_price or (args.message_if_below is not None and price < args.message_if_below):
+        if args.message_if_below is None:
+            text = f"Current price for {args.commodity} is *{price:.2f} \N{euro sign}*."
+        else:
+            text = f"Current price *{price:.2f} \N{euro sign}* is below {args.message_if_below:.2f} \N{euro sign} for {args.commodity}."
         is_sent = _send_callmebot_message(text)
         execution_ok = is_sent and execution_ok
     if args.check_is_above is not None:

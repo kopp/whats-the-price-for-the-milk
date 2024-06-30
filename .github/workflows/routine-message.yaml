@@ -1,0 +1,22 @@
+name: Routine Message
+
+on:
+  push:
+  schedule:
+    - cron:  '0 19 * * WED'
+
+jobs:
+  check-price:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - run: pip install --editable '.'
+    - run: |
+        get_current_price --commodity milk --message-price
+        get_current_price --commodity oil --message-price
+      env:
+        CALLMEBOT_NUMBER: ${{ secrets.CALLMEBOT_NUMBER }}
+        CALLMEBOT_TOKEN: ${{ secrets.CALLMEBOT_TOKEN }}
