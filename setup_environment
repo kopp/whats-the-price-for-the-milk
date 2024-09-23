@@ -5,11 +5,22 @@ this_script_dir=$(dirname $(readlink -f "$0"))
 
 venv="$this_script_dir/venv"
 
+if command -v uv 2>&1 >/dev/null
+then
+    echo "Using uv to manage virtual environment."
+    venv_prefix="uv"
+    install_prefix="uv"
+else
+    echo "Using venv to manage virtual environment."
+    venv_prefix="python3 -m"
+    install_prefix=""
+fi
+
 if [ ! -d "$venv" ]
 then
-    python3 -m venv "$venv"
+    $venv_prefix venv "$venv"
 fi
 
 source "$venv/bin/activate"
 
-pip install --editable "$this_script_dir[dev]"
+$install_prefix pip install --editable "$this_script_dir[dev]"
