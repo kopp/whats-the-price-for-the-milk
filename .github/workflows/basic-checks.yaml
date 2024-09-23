@@ -6,15 +6,30 @@ on:
 jobs:
   basic-checks:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+        use-uv:
+          - true
+          - false
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - name: Setup up Python v${{ matrix.python-version }}
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
-    - run: pip install --editable '.[dev]'
-    - run: mypy src
+        python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      if: ${{ matrix.use-uv }}
+      uses: yezz123/setup-uv@v4
+    - name: Install package and dependencies
+      run: ./setup_environment
+    - name: Mypy type checks
+      run: source venv/bin/activate && mypy src
       if: always()
-    - run: flake8 src
+    - name: Flake8 linter
+      run: source venv/bin/activate && flake8 src
       if: always()
 
 
