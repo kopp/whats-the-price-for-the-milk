@@ -6,7 +6,7 @@ on:
 jobs:
   basic-checks:
     runs-on: ubuntu-latest
-    stratecy:
+    strategy:
       matrix:
         python-version:
           - "3.10"
