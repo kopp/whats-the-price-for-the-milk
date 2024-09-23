@@ -14,12 +14,10 @@ jobs:
       with:
         python-version: '3.11'
     - run: pip install --editable '.'
-    - run: get_current_price --commodity milk --message-if-below 10
+    - run: get_current_price --commodity milk --message-if-below 10 --push-service techulus
       env:
-        CALLMEBOT_NUMBER: ${{ secrets.CALLMEBOT_NUMBER }}
-        CALLMEBOT_TOKEN: ${{ secrets.CALLMEBOT_TOKEN }}
-    - run: get_current_price --commodity oil --message-if-below 95
+        PUSH_TUCHULUS_API_KEY: ${{ secrets.PUSH_TUCHULUS_API_KEY }}
+    - run: get_current_price --commodity oil --message-if-below 95 --push-service techulus
       env:
-        CALLMEBOT_NUMBER: ${{ secrets.CALLMEBOT_NUMBER }}
-        CALLMEBOT_TOKEN: ${{ secrets.CALLMEBOT_TOKEN }}
+        PUSH_TUCHULUS_API_KEY: ${{ secrets.PUSH_TUCHULUS_API_KEY }}
 

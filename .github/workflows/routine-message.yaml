@@ -1,6 +1,7 @@
 name: Routine Message
 
 on:
+  workflow_dispatch:
   schedule:
     - cron:  '0 19 * * WED'
 
@@ -11,11 +12,10 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.12'
     - run: pip install --editable '.'
     - run: |
-        get_current_price --commodity milk --message-price
-        get_current_price --commodity oil --message-price
+        get_current_price --commodity milk --message-price --push-service techulus
+        get_current_price --commodity oil --message-price --push-service techulus
       env:
-        CALLMEBOT_NUMBER: ${{ secrets.CALLMEBOT_NUMBER }}
-        CALLMEBOT_TOKEN: ${{ secrets.CALLMEBOT_TOKEN }}
+        PUSH_TUCHULUS_API_KEY: ${{ secrets.PUSH_TUCHULUS_API_KEY }}
