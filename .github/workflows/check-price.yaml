@@ -17,7 +17,7 @@ jobs:
     - run: get_current_price --commodity milk --message-if-below 10 --push-service techulus
       env:
         PUSH_TUCHULUS_API_KEY: ${{ secrets.PUSH_TUCHULUS_API_KEY }}
-    - run: get_current_price --commodity oil --message-if-below 95 --push-service techulus
+    - run: get_current_price --commodity oil --message-if-below 92 --push-service techulus
       env:
         PUSH_TUCHULUS_API_KEY: ${{ secrets.PUSH_TUCHULUS_API_KEY }}
 
